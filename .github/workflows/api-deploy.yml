@@ -36,7 +36,7 @@ jobs:
       - name: Build artifact
         run: |
           mkdir -p ../build
-          zip -r ../build/api-dev.zip . `
+          zip -r ../build/api-dev.zip . \
             -x ".git/*" "tests/*" "storage/framework/cache/data/*" "storage/logs/*"
 
       - name: Deploy to Azure App Service (DEV)
@@ -70,7 +70,7 @@ jobs:
       - name: Build artifact
         run: |
           mkdir -p ../build
-          zip -r ../build/api-prod.zip . `
+          zip -r ../build/api-prod.zip . \
             -x ".git/*" "tests/*" "storage/framework/cache/data/*" "storage/logs/*"
 
       - name: Deploy to Azure App Service (PROD)
