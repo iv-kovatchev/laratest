@@ -3,9 +3,9 @@ name: Deploy API (Laravel → Azure App Service)
 on:
   push:
     branches: [ develop, main ]
-    paths:
-      - 'laratest-api/**'
-      - '.github/workflows/api-deploy.yml'
+    # paths:
+    #   - 'laratest-api/**'
+    #   - '.github/workflows/api-deploy.yml'
 
 concurrency:
   group: api-${{ github.ref }}
