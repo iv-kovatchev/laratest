@@ -1,0 +1,81 @@
+name: Deploy API (Laravel → Azure App Service)
+
+on:
+  push:
+    branches: [ develop, main ]
+    paths:
+      - 'laratest-api/**'
+      - '.github/workflows/api-deploy.yml'
+
+concurrency:
+  group: api-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-dev:
+    if: github.ref == 'refs/heads/develop'
+    environment: dev
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: laratest-api
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_mysql, intl, bcmath, curl, dom, fileinfo, openssl, tokenizer, xml
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer install --no-dev --prefer-dist --optimize-autoloader
+
+      - name: Build artifact
+        run: |
+          mkdir -p ../build
+          zip -r ../build/api-dev.zip . `
+            -x ".git/*" "tests/*" "storage/framework/cache/data/*" "storage/logs/*"
+
+      - name: Deploy to Azure App Service (DEV)
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: laratest-api-dev                     # ← your Azure dev app name
+          publish-profile: ${{ secrets.AZURE_API_DEV_PUBLISH_PROFILE }}
+          package: ${{ github.workspace }}/build/api-dev.zip
+
+  deploy-prod:
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: laratest-api
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_mysql, intl, bcmath, curl, dom, fileinfo, openssl, tokenizer, xml
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer install --no-dev --prefer-dist --optimize-autoloader
+
+      - name: Build artifact
+        run: |
+          mkdir -p ../build
+          zip -r ../build/api-prod.zip . `
+            -x ".git/*" "tests/*" "storage/framework/cache/data/*" "storage/logs/*"
+
+      - name: Deploy to Azure App Service (PROD)
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: laratest-api-prod                    # ← your Azure prod app name
+          publish-profile: ${{ secrets.AZURE_API_PROD_PUBLISH_PROFILE }}
+          package: ${{ github.workspace }}/build/api-prod.zip
